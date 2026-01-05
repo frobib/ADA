@@ -339,6 +339,69 @@ ggsave(here("plots", "JAP_ITA_pyramid_time.pdf"))
 both are negative i think?
 
 3. Confirm your guesses in 2 by plotting population over time in both countries. 
+
+```{r}
+d_long |> 
+  filter(region=="Japan") |> 
+  group_by(year) |> 
+  summarize(pop = sum(pop)) |> 
+  ggplot(aes(year, pop)) + 
+  geom_line() + 
+  ggtitle("Japan population over time")
+```
+
+```{r}
+d_long |> 
+  filter(region=="Italy") |> 
+  group_by(year) |> 
+  summarize(pop = sum(pop)) |> 
+  ggplot(aes(year, pop)) + 
+  geom_line() + 
+  ggtitle("Italy population over time")
+```
+
 4. Taking the US population in 2000 as the standard population, calculate the standardized mortality rates for US in 2023 and Australia in 2023. How much higher was the death rate in US compared to Australia?
+
+
+```{r}
+d_long |> 
+  filter(region=="United States of America") |> 
+  group_by(year) |> 
+  summarize(pop = sum(pop)) |> 
+  ggplot(aes(year, pop)) + 
+  geom_line() + 
+  ggtitle("USA population over time")
+```
+```{r}
+# get total populations across all age and sex
+total_pops <- d  |>  
+  filter(region=="Kenya"|region=="Canada") |> 
+  pivot_longer(x0:x100, names_to = "age", values_to = "pop") |> 
+  mutate(age = as.numeric(str_remove(age, "x"))) |> 
+  group_by(region, year) |> 
+  summarize(total_pop = sum(pop))
+
+# get total deaths 
+
+total_deaths <- dm  |>  
+  filter(region=="Kenya"|region=="Canada") |> 
+  pivot_longer(x0:x100, names_to = "age", values_to = "deaths") |> 
+  mutate(age = as.numeric(str_remove(age, "x"))) |> 
+  group_by(region, year) |> 
+  summarize(total_deaths = sum(deaths))
+
+# join these
+
+total_pops |> 
+  left_join(total_deaths) |> 
+  mutate(CDR = total_deaths/total_pop) |> 
+  ggplot(aes(year, CDR, color = region)) + 
+  geom_line()
+
+total_pops |> 
+  left_join(total_deaths) |> 
+  mutate(CDR = total_deaths/total_pop) |> 
+  filter(year==2023)
+```
 
 
